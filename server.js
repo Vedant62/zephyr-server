@@ -79,6 +79,15 @@ class BlockchainServer {
                 }
             });
 
+            socket.on("InterestAndRate", async() => {
+                try {
+                    const tx = await this.getInterest();
+                    socket.emit("depositCollateralSuccess", tx);
+                } catch (error) {
+                    socket.emit("error", error.message);
+                }
+            });
+
             socket.on("depositStablecoin", async({ user, amount }) => {
                 try {
                     const tx = await this.depositStablecoin(user, amount);
@@ -101,6 +110,15 @@ class BlockchainServer {
                 try {
                     const tx = await this.borrow(user, amount);
                     socket.emit("borrowSuccess", tx);
+                } catch (error) {
+                    socket.emit("error", error.message);
+                }
+            });
+
+            socket.on("withdrawStablecoin", async({ user, amount }) => {
+                try {
+                    const tx = await this.withdrawStablecoin(user, amount);
+                    socket.emit("WithdrawSuccess", tx);
                 } catch (error) {
                     socket.emit("error", error.message);
                 }
