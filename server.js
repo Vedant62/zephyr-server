@@ -70,9 +70,9 @@ class BlockchainServer {
                 }
             });
 
-            socket.on("depositCollateral", async({ user, token, amount }) => {
+            socket.on("depositCollateral", async({ token, amount }) => {
                 try {
-                    const tx = await this.depositCollateral(user, token, amount);
+                    const tx = await this.depositCollateral(token, amount);
                     socket.emit("depositCollateralSuccess", tx);
                 } catch (error) {
                     socket.emit("error", error.message);
@@ -106,9 +106,9 @@ class BlockchainServer {
                 }
             })
 
-            socket.on("borrow", async({ user, amount }) => {
+            socket.on("borrow", async({ amount }) => {
                 try {
-                    const tx = await this.borrow(user, amount);
+                    const tx = await this.borrow(amount);
                     socket.emit("borrowSuccess", tx);
                 } catch (error) {
                     socket.emit("error", error.message);
@@ -200,7 +200,7 @@ class BlockchainServer {
         // });
     }
 
-    async depositCollateral(userAddress, tokenAddress, amount) {
+    async depositCollateral(tokenAddress, amount) {
         const contractWithSigner = this.contracts.lendingPool.connect(this.signer);
         const tx = await contractWithSigner.depositCollateral(tokenAddress, amount);
         await tx.wait();
@@ -232,7 +232,7 @@ class BlockchainServer {
         }
     }
 
-    async borrow(userAddress, amount) {
+    async borrow(amount) {
         const contractWithSigner = this.contracts.lendingPool.connect(this.signer);
         const tx = await contractWithSigner.borrow(amount);
         await tx.wait();
