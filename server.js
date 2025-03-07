@@ -118,7 +118,7 @@ class BlockchainServer {
             socket.on("withdrawStablecoin", async({ user, amount }) => {
                 try {
                     const tx = await this.withdrawStablecoin(user, amount);
-                    socket.emit("WithdrawSuccess", tx);
+                    socket.emit("withdrawSuccess", tx);
                 } catch (error) {
                     socket.emit("error", error.message);
                 }
