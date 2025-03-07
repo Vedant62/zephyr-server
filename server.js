@@ -21,7 +21,8 @@ const lendingPoolABI = [
     "function liquidate(address borrower) external",
     "function getInterest() external",
     "function calculateBorrowRate() public view returns (uint256)",
-    "function totalStablecoinDeposits() view returns (uint256)"
+    "function totalStablecoinDeposits() view returns (uint256)",
+    "function getInvestedCapital() external view returns (uint256)"
 ];
 
 class BlockchainServer {
@@ -35,7 +36,7 @@ class BlockchainServer {
         );
 
         this.contractAddresses = {
-            lendingPool: "0x175fed7a585Bf40549815E03283E9cE7D99610E7",
+            lendingPool: "0xec2eb75dBD42ea2C35aB033fb9Cdde516f240962",
         };
 
         this.contracts = {};
@@ -86,6 +87,15 @@ class BlockchainServer {
                     socket.emit("error", error.message);
                 }
             });
+
+            socket.on("getInvestedCapital", async() => {
+                try {
+                    const tx = await this.getInvestedCapital();
+                    socket.emit("sucess", tx);
+                } catch (error) {
+                    socket.emit("error", error.message);
+                }
+            })
 
             socket.on("borrow", async({ user, amount }) => {
                 try {
@@ -220,9 +230,16 @@ class BlockchainServer {
 
     async withdrawStablecoin(userAddress, amount) {
         const contractWithSigner = this.contracts.lendingPool.connect(this.signer);
-        const tx = await contractWithSigner.withdrawStablecoin(amount);
-        await tx.wait();
-        return tx;
+        try {
+            // Ensure the user has approved the contract to spend the stablecoin
+            const tx = await contractWithSigner.withdrawStablecoin(amount);
+            await tx.wait();
+            console.log("withdraw successful:", tx);
+            return tx;
+        } catch (error) {
+            console.error("Error withdrawing stablecoin:", error);
+            throw new Error("withdraw failed: " + error.message);
+        }
     }
 
     async liquidate(borrower) {
@@ -235,6 +252,12 @@ class BlockchainServer {
     async totalStablecoinDeposits() {
         const contractWithSigner = this.contracts.lendingPool.connect(this.signer);
         const tx = await contractWithSigner.totalStablecoinDeposits();
+        return tx;
+    }
+
+    async getInvestedCapital() {
+        const contractWithSigner = this.contracts.lendingPool.connect(this.signer);
+        const tx = await contractWithSigner.getInvestedCapital();
         return tx;
     }
 
@@ -282,4 +305,13 @@ async function getAmount() {
     }
 }
 
-getAmount();
+async function getInvested() {
+    console.log("Attempting to get Amount");
+    try {
+        const tx = await server.getInterest(); // Use the instance
+    } catch (error) {
+        console.error("Deposit failed:", error);
+    }
+}
+
+// getInvested();
